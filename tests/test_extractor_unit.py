@@ -314,7 +314,7 @@ class TestExtractFromNetworkInterception:
         mock_page.unroute_all = MagicMock()
         mock_page.wait_for_timeout = MagicMock()
 
-        result = _extract_from_network_interception(mock_page, timeout_ms=100)
+        _extract_from_network_interception(mock_page, timeout_ms=100)
 
         mock_page.route.assert_called_once()
         mock_page.unroute_all.assert_called_once()
@@ -327,7 +327,7 @@ class TestExtractFromNetworkInterception:
         mock_page.unroute_all = MagicMock()
         mock_page.wait_for_timeout = MagicMock()
 
-        result = _extract_from_network_interception(mock_page, timeout_ms=100)
+        _extract_from_network_interception(mock_page, timeout_ms=100)
 
         mock_page.route.assert_called_once()
 
@@ -338,7 +338,7 @@ class TestExtractFromNetworkInterception:
         mock_page.unroute_all = MagicMock()
         mock_page.wait_for_timeout = MagicMock()
 
-        result = _extract_from_network_interception(mock_page, timeout_ms=100)
+        _extract_from_network_interception(mock_page, timeout_ms=100)
 
         mock_page.route.assert_called_once()
 
@@ -349,7 +349,7 @@ class TestExtractFromNetworkInterception:
         mock_page.unroute_all = MagicMock()
         mock_page.wait_for_timeout = MagicMock()
 
-        result = _extract_from_network_interception(mock_page, timeout_ms=100)
+        _extract_from_network_interception(mock_page, timeout_ms=100)
 
         mock_page.route.assert_called_once()
 
@@ -360,7 +360,7 @@ class TestExtractFromNetworkInterception:
         mock_page.unroute_all = MagicMock()
         mock_page.wait_for_timeout = MagicMock()
 
-        result = _extract_from_network_interception(mock_page, timeout_ms=100)
+        _extract_from_network_interception(mock_page, timeout_ms=100)
 
         mock_page.route.assert_called_once()
 
@@ -371,7 +371,7 @@ class TestExtractFromNetworkInterception:
         mock_page.unroute_all = MagicMock()
         mock_page.wait_for_timeout = MagicMock()
 
-        result = _extract_from_network_interception(mock_page, timeout_ms=100)
+        _extract_from_network_interception(mock_page, timeout_ms=100)
 
         mock_page.route.assert_called_once()
         mock_page.unroute_all.assert_called_once()

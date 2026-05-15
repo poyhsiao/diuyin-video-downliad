@@ -7,7 +7,6 @@ import requests
 from tqdm import tqdm
 
 from douyin_download.extractor import extract_cdn_url
-from douyin_download.models import VideoNotFoundError
 
 
 class DownloadFailedError(Exception):

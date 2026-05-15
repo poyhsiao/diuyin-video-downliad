@@ -1,6 +1,5 @@
 """pytest configuration and shared fixtures."""
 
-import os
 import shutil
 import tempfile
 from pathlib import Path

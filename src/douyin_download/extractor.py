@@ -172,7 +172,7 @@ def _intercept_aweme_detail_api(page, timeout_ms: int = 8000) -> list[str]:
 
                 # Check bitrate info for quality selection
                 video_meta = aweme_data.get("video", {})
-                bitrate = video_meta.get("bitrate", 0)
+                video_meta.get("bitrate", 0)  # noqa: F841 (kept for future use)
         except (json.JSONDecodeError, ValueError, KeyError):
             continue
 

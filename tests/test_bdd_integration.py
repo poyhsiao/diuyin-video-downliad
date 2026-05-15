@@ -4,7 +4,6 @@ These tests follow BDD principles but are written as standard pytest tests.
 Each test documents a scenario in comments following the Given-When-Then pattern.
 """
 
-import os
 from pathlib import Path
 from unittest.mock import patch, MagicMock
 

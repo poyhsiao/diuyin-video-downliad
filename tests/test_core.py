@@ -2,7 +2,7 @@
 
 import pytest
 from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 
 import requests
 
@@ -101,7 +101,9 @@ class TestDownloadFile:
 
         # Call _download_file with progress_callback
         progress_calls = []
-        callback = lambda downloaded, total: progress_calls.append((downloaded, total))
+
+        def callback(downloaded: int, total: int) -> None:
+            progress_calls.append((downloaded, total))
 
         _download_file("https://example.com/video.mp4", Path("/tmp/video.mp4"), callback)
 
@@ -212,7 +214,9 @@ class TestDownloadVideo:
         mock_extract.return_value = ["https://cdn.example.com/video.mp4"]
 
         progress_calls = []
-        callback = lambda downloaded, total: progress_calls.append((downloaded, total))
+
+        def callback(downloaded: int, total: int) -> None:
+            progress_calls.append((downloaded, total))
 
         video_id, output_path = download_video(
             "https://www.douyin.com/video/123456789",
