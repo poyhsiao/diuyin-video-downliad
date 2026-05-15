@@ -2,7 +2,9 @@
 
 from functools import lru_cache
 from pathlib import Path
+from typing import Literal
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -18,8 +20,8 @@ class Settings(BaseSettings):
 
     # API 設定
     api_host: str = "0.0.0.0"
-    api_port: int = 8000
-    api_workers: int = 4
+    api_port: int = Field(default=8000, ge=1, le=65535)
+    api_workers: int = Field(default=4, ge=1)
     api_reload: bool = False
 
     # 路徑設定
@@ -31,9 +33,9 @@ class Settings(BaseSettings):
     nginx_ssl_port: int = 443
 
     # 預設值
-    default_quality: str = "original"
-    max_concurrent_downloads: int = 5
-    task_timeout_seconds: int = 300
+    default_quality: Literal["original", "480p", "720p", "1080p"] = "original"
+    max_concurrent_downloads: int = Field(default=5, ge=1)
+    task_timeout_seconds: int = Field(default=300, ge=1)
 
     # Playwright
     playwright_browsers_path: Path = Path("/ms-playwright")
