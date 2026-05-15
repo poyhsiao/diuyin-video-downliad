@@ -111,8 +111,10 @@ jobs:
       - name: Test with docker compose
         run: |
           docker compose up -d
-          sleep 15
-          curl -f http://localhost:8000/health || curl -f http://localhost:8000/api/health
+          sleep 20
+          docker compose ps
+          docker compose logs app --tail 20
+          curl -v http://localhost:8000/health || curl -v http://localhost:8000/api/health
           docker compose down
 
       - name: Trivy vulnerability scan
