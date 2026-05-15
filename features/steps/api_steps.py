@@ -1,56 +1,99 @@
-"""Step definitions for API feature."""
+"""API steps for BDD tests."""
 
-import pytest
-from httpx import AsyncClient
-from unittest.mock import patch, AsyncMock
-
-from douyin_download.api import app
+from pytest_bdd import given, when, then, parsers
+from fastapi.testclient import TestClient
 
 
-@pytest.fixture
-async def api_client():
-    """Create an async test client for the FastAPI app."""
-    async with AsyncClient(app=app, base_url="http://test") as client:
-        yield client
+# Store client globally for step access
+_client: TestClient = None
+_created_task_id: str | None = None
 
 
-@pytest.fixture
-def extract_result():
-    """Mock extraction result."""
-    return ["https://v5-hl-mly-ov.zjcdn.com/test.mp4"]
+@given("FastAPI client")
+def fastapi_client():
+    """Create FastAPI test client."""
+    global _client
+    from douyin_download.api import app
+    _client = TestClient(app)
+    return _client
 
 
-@given("FastAPI 客戶端")
-def given_api_client(api_client):
-    """Set the FastAPI client for testing."""
-    return api_client
+@when("I send GET request to {path}")
+def send_get_request(path: str):
+    """Send GET request."""
+    global _client
+    return _client.get(path)
 
 
-@when('發送 GET 請求至 "{path}"')
-async def when_send_get_request(api_client, path):
-    """Send a GET request to specified path."""
-    response = await api_client.get(path)
-    return response
+@when("I send POST request to {path} with:")
+def send_post_request(path: str, table):
+    """Send POST request with form data."""
+    global _client
+    data = {row["field"]: row["value"] for row in table}
+    return _client.post(path, json=data)
 
 
-@then("回應狀態應為 {status_code}")
-def then_response_status(response, status_code):
-    """Verify response status code."""
-    assert response.status_code == int(status_code)
+@when("I send DELETE request to {path}")
+def send_delete_request(path: str):
+    """Send DELETE request."""
+    global _client
+    return _client.delete(path)
 
 
-@then('回應內容應為 {expected}')
-def then_response_body_equals(response, expected):
-    """Verify response body equals expected JSON."""
-    import json
-    expected_dict = json.loads(expected)
-    assert response.json() == expected_dict
+@then("response status should be {status}")
+def check_status(response, status: int):
+    """Check response status code."""
+    assert response.status_code == status
 
 
-@then("回應內容應包含 \"{text}\"")
-def then_response_contains(response, text):
-    """Verify response contains specified text."""
-    response_data = response.json()
-    # Check if text is in any string field
-    found = text in str(response_data)
-    assert found, f"Expected '{text}' in {response_data}"
+@then("response should contain {key}")
+def check_response_contains(response, key: str):
+    """Check response JSON contains key."""
+    data = response.json()
+    assert key in data, f"Expected '{key}' in response: {data}"
+
+
+@then("response should be a list")
+def check_response_is_list(response):
+    """Check response is a list."""
+    data = response.json()
+    assert isinstance(data, list), f"Expected list, got {type(data)}"
+
+
+@given("I create a download task with callback")
+def create_download_task():
+    """Create a download task with callback URL."""
+    global _client, _created_task_id
+    response = _client.post(
+        "/api/v1/download",
+        json={
+            "url": "https://www.douyin.com/video/123",
+            "callback_url": "https://example.com/webhook",
+        },
+    )
+    _created_task_id = response.json().get("task_id")
+
+
+@when("I send GET request to {path}")
+def send_get_request_with_task_id(path: str):
+    """Send GET request with task_id substituted."""
+    global _client, _created_task_id
+    actual_path = path.replace("{task_id}", _created_task_id)
+    return _client.get(actual_path)
+
+
+@when("I send DELETE request to {path}")
+def send_delete_request_with_task_id(path: str):
+    """Send DELETE request with task_id substituted."""
+    global _client, _created_task_id
+    actual_path = path.replace("{task_id}", _created_task_id)
+    return _client.delete(actual_path)
+
+
+@then("response should contain task details")
+def check_task_details(response):
+    """Check response contains task fields."""
+    data = response.json()
+    assert "task_id" in data
+    assert "status" in data
+    assert "video_url" in data

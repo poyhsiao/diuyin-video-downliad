@@ -1,13 +1,47 @@
-Feature: FastAPI 預留端點
+Feature: FastAPI API Endpoints
 
-  Scenario: 根路徑回應
-    Given FastAPI 客戶端
-    When 發送 GET 請求至 "/"
-    Then 回應狀態應為 200
-    And 回應內容應為 {"status": "coming_soon"}
+  Scenario: Health check returns healthy status
+    Given FastAPI client
+    When I send GET request to "/health"
+    Then response status should be 200
+    And response should contain "healthy"
 
-  Scenario: 下載端點預留
-    Given FastAPI 客戶端
-    When 發送 GET 請求至 "/download?url=https://www.douyin.com/video/7637075230132849971"
-    Then 回應狀態應為 200
-    And 回應內容應包含 "coming_soon"
+  Scenario: Download video synchronously
+    Given FastAPI client
+    When I send POST request to "/api/v1/download" with:
+      | field    | value                              |
+      | url      | https://www.douyin.com/video/123   |
+      | quality  | 720p                               |
+    Then response status should be 200
+    And response should contain "status"
+
+  Scenario: Download with callback creates pending task
+    Given FastAPI client
+    When I send POST request to "/api/v1/download" with:
+      | field        | value                              |
+      | url          | https://www.douyin.com/video/123   |
+      | callback_url | https://example.com/webhook        |
+    Then response status should be 200
+    And response should contain "pending"
+    And response should contain "task_id"
+
+  Scenario: Get task status
+    Given FastAPI client
+    And I create a download task with callback
+    When I send GET request to "/api/v1/tasks/{task_id}"
+    Then response status should be 200
+    And response should contain task details
+
+  Scenario: List all tasks
+    Given FastAPI client
+    And I create a download task with callback
+    When I send GET request to "/api/v1/tasks"
+    Then response status should be 200
+    And response should be a list
+
+  Scenario: Cancel pending task
+    Given FastAPI client
+    And I create a download task with callback
+    When I send DELETE request to "/api/v1/tasks/{task_id}"
+    Then response status should be 200
+    And response should contain "cancelled"
