@@ -1,1 +1,29 @@
-.gitnexus
+# Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Coverage
+.coverage
+.coverage.*
+htmlcov/
+
+# Testing
+.pytest_cache/
+.hypothesis/
+
+# Linting
+.ruff_cache/
+.mypy_cache/
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+
+# Playwright
+.playwright/
+
+# Virtual environment
+.venv/
+venv/
