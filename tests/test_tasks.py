@@ -2,7 +2,6 @@
 
 import pytest
 from pathlib import Path
-from unittest.mock import AsyncMock
 
 from douyin_download.models import TaskStatus, DownloadResult
 from douyin_download.tasks import TaskManager, get_task_manager
@@ -40,8 +39,8 @@ def test_get_task_not_found():
 def test_list_tasks():
     """Test listing all tasks."""
     manager = TaskManager()
-    task1 = manager.create_task(video_url="https://example.com/video/1")
-    task2 = manager.create_task(video_url="https://example.com/video/2")
+    manager.create_task(video_url="https://example.com/video/1")
+    manager.create_task(video_url="https://example.com/video/2")
     tasks = manager.list_tasks()
     assert len(tasks) == 2
 

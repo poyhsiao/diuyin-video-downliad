@@ -2,12 +2,11 @@
 
 import pytest
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 
 from douyin_download.api import app
-from douyin_download.models import TaskStatus
 
 
 @pytest.fixture

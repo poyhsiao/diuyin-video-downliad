@@ -1,17 +1,15 @@
 """FastAPI application for Douyin downloader."""
 
-from functools import partial
 from pathlib import Path
 from typing import Annotated
 
 from fastapi import FastAPI, HTTPException, BackgroundTasks, Depends
-from fastapi.responses import FileResponse
 from pydantic import BaseModel, HttpUrl
 
 from douyin_download import __version__
 from douyin_download.config import get_settings
 from douyin_download.core import download_video
-from douyin_download.models import DownloadResult, TaskStatus
+from douyin_download.models import TaskStatus
 from douyin_download.tasks import get_task_manager, TaskManager
 
 
