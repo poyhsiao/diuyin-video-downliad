@@ -30,6 +30,52 @@ def _extract_from_video_tag(page) -> list[str]:
     return []
 
 
+def _extract_from_source_tags(page) -> list[str]:
+    """Extract URLs from source tags.
+
+    Args:
+        page: Playwright page object
+
+    Returns:
+        List of URLs found in source elements (empty if none)
+    """
+    urls: list[str] = []
+    for el in page.query_selector_all("source"):
+        src = el.get_attribute("src")
+        if src:
+            urls.append(src)
+    return urls
+
+
+def _extract_from_pace_f(page) -> list[str]:
+    """Extract URLs from window.__pace_f data.
+
+    Args:
+        page: Playwright page object
+
+    Returns:
+        List of URLs found in __pace_f object (empty if none)
+    """
+    urls: set[str] = set()
+    pace_data = page.evaluate("""() => {
+        try { return JSON.stringify(window.__pace_f || {}); }
+        catch (e) { return '{}'; }
+    }""")
+    try:
+        data = json.loads(pace_data)
+        if isinstance(data, dict):
+            for val in data.values():
+                if isinstance(val, str) and ("mp4" in val or "play" in val):
+                    urls.add(val)
+                elif isinstance(val, dict):
+                    for v in val.values():
+                        if isinstance(v, str) and ("mp4" in v or "play" in v):
+                            urls.add(v)
+    except (json.JSONDecodeError, ValueError):
+        pass
+    return list(urls)
+
+
 def _extract_from_data_attributes(page) -> list[str]:
     """Extract URLs from page attributes containing mp4/play.
 
@@ -47,7 +93,7 @@ def _extract_from_data_attributes(page) -> list[str]:
     return list(set(matches))
 
 
-def extract_cdn_url(url: str, wait_seconds: int = 5) -> list[str]:
+def extract_cdn_url(url: str, wait_seconds: int = 10) -> list[str]:
     """Headless Chrome extraction of video CDN URLs.
 
     Args:
@@ -83,31 +129,16 @@ def extract_cdn_url(url: str, wait_seconds: int = 5) -> list[str]:
 
             page.wait_for_timeout(timeout_ms)
 
-            urls: set[str] = set()
+            # Try each extraction method in priority order
+            urls = _extract_from_video_tag(page)
+            if not urls:
+                urls = _extract_from_source_tags(page)
+            if not urls:
+                urls = _extract_from_pace_f(page)
+            if not urls:
+                urls = _extract_from_data_attributes(page)
 
-            pace_data = page.evaluate("""() => {
-                try { return JSON.stringify(window.__pace_f || {}); }
-                catch (e) { return '{}'; }
-            }""")
-            try:
-                data = json.loads(pace_data)
-                if isinstance(data, dict):
-                    for val in data.values():
-                        if isinstance(val, str) and ("mp4" in val or "play" in val):
-                            urls.add(val)
-                        elif isinstance(val, dict):
-                            for v in val.values():
-                                if isinstance(v, str) and ("mp4" in v or "play" in v):
-                                    urls.add(v)
-            except (json.JSONDecodeError, ValueError):
-                pass
-
-            for el in page.query_selector_all("source"):
-                src = el.get_attribute("src")
-                if src:
-                    urls.add(src)
-
-            return list(urls)
+            return urls
 
         except TimeoutError:
             raise ExtractionTimeoutError(f"Extraction timed out after {wait_seconds}s")
