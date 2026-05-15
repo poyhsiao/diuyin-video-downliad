@@ -1,6 +1,7 @@
 """Playwright-based CDN URL extractor."""
 
 import json
+import re
 
 from playwright.sync_api import TimeoutError
 
@@ -85,12 +86,130 @@ def _extract_from_data_attributes(page) -> list[str]:
     Returns:
         List of URLs found in data-* and href attributes
     """
-    import re
-
     all_html = page.content()
     pattern = r'(?:href|data-src|data-url)=["\']([^"\']*(?:mp4|play)[^"\']*)["\']'
     matches = re.findall(pattern, all_html, re.IGNORECASE)
     return list(set(matches))
+
+
+VIDEO_URL_PATTERNS = re.compile(
+    r'\.(?:mp4|m3u8|ts|chunk)(?:\?|$)|/video/|\.play\.googlevideo\.'
+)
+
+# Douyin API endpoints that contain video metadata
+AWEME_DETAIL_PATTERNS = re.compile(r'/aweme/v\d+/web/aweme/detail/')
+
+# CDN domains used by Douyin for video delivery
+VIDEO_CDN_PATTERNS = re.compile(
+    r'(byteeffecttos\.com|douyinstatic\.com|bytedstatic\.com|tiktokcdn\.com)'
+)
+
+
+def _intercept_aweme_detail_api(page, timeout_ms: int = 8000) -> list[str]:
+    """Intercept Douyin aweme/detail API response for video URLs.
+
+    Douyin loads video metadata via the /aweme/v1/web/aweme/detail/ endpoint.
+    The response contains play_addr.url_list with actual CDN video URLs.
+
+    Args:
+        page: Playwright page object
+        timeout_ms: How long to collect requests (default 8s)
+
+    Returns:
+        List of video URLs extracted from API responses
+    """
+    video_urls: list[str] = []
+    api_responses: dict[str, str] = {}  # url -> response body
+
+    def handle_route(route):
+        url = route.request.url
+        # Capture aweme detail API responses
+        if AWEME_DETAIL_PATTERNS.search(url):
+            try:
+                response = route.fetch()
+                if response.ok:
+                    try:
+                        api_responses[url] = response.text()
+                    except Exception:
+                        pass
+            except Exception:
+                pass  # Request context disposed or other fetch errors
+            route.abort()  # Don't let it continue, we handle it
+        else:
+            route.continue_()
+
+    page.route(re.compile(r".*"), handle_route)
+
+    # Wait for API calls to complete
+    import time
+    start = time.time()
+    while time.time() - start < timeout_ms / 1000:
+        page.wait_for_timeout(500)
+        if api_responses:
+            break
+
+    page.unroute_all()
+
+    # Parse API responses to extract video URLs
+    for url, body in api_responses.items():
+        try:
+            data = json.loads(body)
+            aweme_data = data.get("aweme_detail", {})
+            if aweme_data:
+                # Try play_addr (primary video source)
+                play_addr = aweme_data.get("video", {}).get("play_addr", {})
+                url_list = play_addr.get("url_list", [])
+                if url_list:
+                    # Prefer H.265 or highest quality
+                    video_urls.extend(url_list)
+
+                # Also check video_addr as fallback
+                video_addr = aweme_data.get("video", {}).get("video_addr", {})
+                if isinstance(video_addr, dict):
+                    url_list2 = video_addr.get("url_list", [])
+                    if url_list2:
+                        video_urls.extend(url_list2)
+
+                # Check bitrate info for quality selection
+                video_meta = aweme_data.get("video", {})
+                bitrate = video_meta.get("bitrate", 0)
+        except (json.JSONDecodeError, ValueError, KeyError):
+            continue
+
+    return list(set(video_urls))
+
+
+def _extract_from_network_interception(page, timeout_ms: int = 5000) -> list[str]:
+    """Extract video URLs by intercepting network requests.
+
+    Uses Playwright's route API to capture requests matching video patterns.
+
+    Args:
+        page: Playwright page object
+        timeout_ms: How long to collect requests (default 5s)
+
+    Returns:
+        List of video URLs captured from network
+    """
+    captured_urls: list[str] = []
+
+    def handle_route(route):
+        url = route.request.url
+        if VIDEO_URL_PATTERNS.search(url):
+            captured_urls.append(url)
+        route.continue_()
+
+    page.route(re.compile(r".*"), handle_route)
+
+    import time
+
+    start = time.time()
+    while time.time() - start < timeout_ms / 1000:
+        page.wait_for_timeout(500)
+
+    page.unroute_all()
+
+    return list(set(captured_urls))
 
 
 def extract_cdn_url(url: str, wait_seconds: int = 10) -> list[str]:
@@ -115,6 +234,9 @@ def extract_cdn_url(url: str, wait_seconds: int = 10) -> list[str]:
         browser = p.chromium.launch(headless=True)
         page = browser.new_page()
         try:
+            # Start capturing BEFORE navigation so we don't miss API calls
+            # Use 'commit' to just start navigation and not wait for full load
+            page.route(re.compile(r".*"), lambda route: route.continue_())
             response = page.goto(
                 url,
                 wait_until="domcontentloaded",
@@ -127,10 +249,13 @@ def extract_cdn_url(url: str, wait_seconds: int = 10) -> list[str]:
             if response.status in (404, 403):
                 raise VideoNotFoundError(f"Video not found (HTTP {response.status}): {url}")
 
-            page.wait_for_timeout(timeout_ms)
-
-            # Try each extraction method in priority order
-            urls = _extract_from_video_tag(page)
+            # Now do targeted interception for aweme detail API
+            urls = _intercept_aweme_detail_api(page, timeout_ms)
+            if not urls:
+                urls = _extract_from_network_interception(page, timeout_ms)
+            if not urls:
+                # Fallback to DOM-based extraction
+                urls = _extract_from_video_tag(page)
             if not urls:
                 urls = _extract_from_source_tags(page)
             if not urls:
