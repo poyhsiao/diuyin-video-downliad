@@ -30,6 +30,23 @@ def _extract_from_video_tag(page) -> list[str]:
     return []
 
 
+def _extract_from_data_attributes(page) -> list[str]:
+    """Extract URLs from page attributes containing mp4/play.
+
+    Args:
+        page: Playwright page object
+
+    Returns:
+        List of URLs found in data-* and href attributes
+    """
+    import re
+
+    all_html = page.content()
+    pattern = r'(?:href|data-src|data-url)=["\']([^"\']*(?:mp4|play)[^"\']*)["\']'
+    matches = re.findall(pattern, all_html, re.IGNORECASE)
+    return list(set(matches))
+
+
 def extract_cdn_url(url: str, wait_seconds: int = 5) -> list[str]:
     """Headless Chrome extraction of video CDN URLs.
 

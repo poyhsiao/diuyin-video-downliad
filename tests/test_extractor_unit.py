@@ -3,7 +3,7 @@
 import pytest
 from unittest.mock import MagicMock
 
-from douyin_download.extractor import _extract_from_video_tag, extract_cdn_url
+from douyin_download.extractor import _extract_from_data_attributes, _extract_from_video_tag, extract_cdn_url
 
 
 class TestExtractFromVideoTag:
@@ -49,4 +49,26 @@ class TestExtractFromPaceF:
 
         result = extract_cdn_url("https://example.com", wait_seconds=1)
 
+        assert result == []
+
+
+class TestExtractFromDataAttributes:
+    """Tests for _extract_from_data_attributes function."""
+
+    def test_data_attributes_found(self) -> None:
+        """Should extract URLs from data-* and href attributes."""
+        mock_page = MagicMock()
+        mock_page.content.return_value = '<a href="https://v5.data.mp4">video</a>'
+        mock_page.evaluate.return_value = '{"videoUrl": "https://v5.data.mp4"}'
+
+        result = _extract_from_data_attributes(mock_page)
+        assert result == ["https://v5.data.mp4"]
+
+    def test_data_attributes_not_found(self) -> None:
+        """Should return empty list when no mp4/play in attributes."""
+        mock_page = MagicMock()
+        mock_page.content.return_value = '<a href="https://example.com">link</a>'
+        mock_page.evaluate.return_value = '{"other": "not-a-video-url"}'
+
+        result = _extract_from_data_attributes(mock_page)
         assert result == []
