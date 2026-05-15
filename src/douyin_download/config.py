@@ -28,9 +28,10 @@ class Settings(BaseSettings):
     download_output_dir: Path = Path("/data/downloads")
     temp_dir: Path = Path("/data/temp")
 
-    # Nginx
-    nginx_port: int = 80
-    nginx_ssl_port: int = 443
+    # Docker 映射
+    nginx_port: int = Field(default=80, ge=1, le=65535)
+    nginx_ssl_port: int = Field(default=443, ge=1, le=65535)
+    app_port: int = Field(default=8000, ge=1, le=65535)
 
     # 預設值
     default_quality: Literal["original", "480p", "720p", "1080p"] = "original"

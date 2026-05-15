@@ -28,9 +28,9 @@ RUN mkdir -p /data/downloads /data/temp
 
 # Set environment
 ENV PYTHONUNBUFFERED=1
-ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+ENV PLAYWRIGHT_BROWSERS_PATH=${PLAYWRIGHT_BROWSERS_PATH:-/ms-playwright}
 
-EXPOSE 8000
+# Run with gunicorn - use environment variables with defaults
+EXPOSE ${APP_PORT:-8000}
 
-# Run with gunicorn
-CMD ["uv", "run", "gunicorn", "douyin_download.api:app", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "-b", "0.0.0.0:8000"]
+CMD ["uv", "run", "gunicorn", "douyin_download.api:app", "-w", "${API_WORKERS:-4}", "-k", "uvicorn.workers.UvicornWorker", "-b", "${API_HOST:-0.0.0.0}:${API_PORT:-8000}"]
