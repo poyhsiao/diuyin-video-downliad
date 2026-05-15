@@ -1,6 +1,8 @@
 """Task management for background downloads."""
 
 import asyncio
+import logging
+import threading
 import uuid
 from datetime import datetime
 from pathlib import Path
@@ -99,19 +101,22 @@ class TaskManager:
         try:
             async with httpx.AsyncClient() as client:
                 await client.post(task.callback_url, json=payload, timeout=10)
-        except Exception:
-            pass  # Log error in production
+        except Exception as e:
+            logging.warning(f"Callback failed for task {task.task_id}: {e}")
 
 
 # Global task manager instance
 _task_manager: TaskManager | None = None
+_task_lock = threading.Lock()
 
 
 def get_task_manager() -> TaskManager:
-    """Get global task manager instance."""
+    """Get global task manager instance (thread-safe singleton)."""
     global _task_manager
     if _task_manager is None:
-        from douyin_download.config import get_settings
-        settings = get_settings()
-        _task_manager = TaskManager(timeout_seconds=settings.task_timeout_seconds)
+        with _task_lock:
+            if _task_manager is None:  # Double-checked locking
+                from douyin_download.config import get_settings
+                settings = get_settings()
+                _task_manager = TaskManager(timeout_seconds=settings.task_timeout_seconds)
     return _task_manager

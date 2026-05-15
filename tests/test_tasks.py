@@ -2,8 +2,9 @@
 
 import pytest
 from pathlib import Path
+from unittest.mock import AsyncMock
 
-from douyin_download.models import TaskStatus
+from douyin_download.models import TaskStatus, DownloadResult
 from douyin_download.tasks import TaskManager, get_task_manager
 
 
@@ -64,3 +65,44 @@ def test_get_task_manager_singleton():
     m1 = get_task_manager()
     m2 = get_task_manager()
     assert m1 is m2
+
+
+@pytest.mark.asyncio
+async def test_execute_task_success():
+    """Test successful task execution."""
+    manager = TaskManager(timeout_seconds=5)
+    task = manager.create_task(
+        video_url="https://example.com/video/123",
+        quality="720p",
+    )
+
+    async def mock_download(url, out, q):
+        return DownloadResult(
+            video_id="vid_123",
+            path=Path("/tmp/test.mp4"),
+            file_size=1024,
+        )
+
+    await manager.execute_task(task.task_id, mock_download)
+
+    updated = manager.get_task(task.task_id)
+    assert updated.status == TaskStatus.COMPLETED
+    assert updated.video_id == "vid_123"
+
+
+@pytest.mark.asyncio
+async def test_execute_task_with_callback():
+    """Test task execution with callback URL."""
+    manager = TaskManager(timeout_seconds=5)
+    task = manager.create_task(
+        video_url="https://example.com/video/123",
+        callback_url="https://example.com/webhook",
+    )
+
+    async def mock_download(url, out, q):
+        return DownloadResult(video_id="v1", path=Path("/tmp/test.mp4"), file_size=2048)
+
+    await manager.execute_task(task.task_id, mock_download)
+
+    updated = manager.get_task(task.task_id)
+    assert updated.status == TaskStatus.COMPLETED
