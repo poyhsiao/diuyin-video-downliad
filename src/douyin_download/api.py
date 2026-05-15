@@ -1,5 +1,6 @@
 """FastAPI application for Douyin downloader."""
 
+from functools import partial
 from pathlib import Path
 from typing import Annotated
 
@@ -7,16 +8,17 @@ from fastapi import FastAPI, HTTPException, BackgroundTasks, Depends
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, HttpUrl
 
+from douyin_download import __version__
 from douyin_download.config import get_settings
 from douyin_download.core import download_video
-from douyin_download.models import VideoQuality, DownloadResult, TaskStatus
+from douyin_download.models import DownloadResult, TaskStatus
 from douyin_download.tasks import get_task_manager, TaskManager
 
 
 app = FastAPI(
     title="Douyin Downloader API",
     description="API for downloading Douyin videos",
-    version="0.2.0",
+    version=__version__,
     docs_url="/docs",
     redoc_url="/redoc",
 )
@@ -62,7 +64,7 @@ def get_manager() -> TaskManager:
 @app.get("/health")
 def health_check() -> dict:
     """Health check endpoint."""
-    return {"status": "healthy", "version": "0.2.0"}
+    return {"status": "healthy", "version": __version__}
 
 
 @app.post("/api/v1/download", response_model=DownloadResponse)
@@ -83,9 +85,8 @@ def create_download(
             callback_url=request.callback_url,
         )
         background_tasks.add_task(
-            manager.execute_task,
-            task.task_id,
-            lambda url, out, q: download_video(url, out, q),
+            partial(manager.execute_task, task.task_id),
+            lambda url=task.task_id, out=output_path, q=request.quality or settings.default_quality: download_video(url, out, q),
         )
         return DownloadResponse(status="pending", task_id=task.task_id)
 
