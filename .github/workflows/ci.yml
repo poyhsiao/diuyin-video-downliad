@@ -105,12 +105,12 @@ jobs:
           docker build -t douyin-api:${{ github.sha }} .
           docker build -t douyin-api:latest .
 
-      - name: Test with docker-compose
+      - name: Test with docker compose
         run: |
-          docker-compose up -d
+          docker compose up -d
           sleep 10
           curl -f http://localhost:80/health
-          docker-compose down
+          docker compose down
 
       - name: Trivy vulnerability scan
         uses: aquasecurity/trivy-action@master
