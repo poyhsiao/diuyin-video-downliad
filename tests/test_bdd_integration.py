@@ -295,7 +295,8 @@ class TestCliFeature:
         """download 子指令存在 - Given: CLI 已安裝, When: --help, Then: 顯示說明"""
         import subprocess
 
-        venv_python = (
+        # Try local venv first, fall back to system PATH
+        venv_douyin = (
             Path.home()
             / "Templates"
             / "git"
@@ -307,8 +308,10 @@ class TestCliFeature:
         )
         project_dir = Path.home() / "Templates" / "git" / "kimhsiao" / "diuyin-video-downliad"
 
+        douyin_cmd = venv_douyin if venv_douyin.exists() else "douyin"
+
         result = subprocess.run(
-            [str(venv_python), "download", "--help"],
+            [str(douyin_cmd), "download", "--help"],
             capture_output=True,
             text=True,
             cwd=str(project_dir),
@@ -321,7 +324,7 @@ class TestCliFeature:
         """CLI 指令顯示正確用法 - Given: CLI 已安裝, When: --help, Then: 顯示 URL 用法"""
         import subprocess
 
-        venv_python = (
+        venv_douyin = (
             Path.home()
             / "Templates"
             / "git"
@@ -333,8 +336,10 @@ class TestCliFeature:
         )
         project_dir = Path.home() / "Templates" / "git" / "kimhsiao" / "diuyin-video-downliad"
 
+        douyin_cmd = venv_douyin if venv_douyin.exists() else "douyin"
+
         result = subprocess.run(
-            [str(venv_python), "download", "--help"],
+            [str(douyin_cmd), "download", "--help"],
             capture_output=True,
             text=True,
             cwd=str(project_dir),
