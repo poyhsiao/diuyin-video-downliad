@@ -34,3 +34,13 @@ build-backend = "hatchling.build"
 testpaths = ["tests", "features"]
 bdd_features_base_dir = "features"
 asyncio_mode = "auto"
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=8.0.0",
+    "pytest-bdd>=4.0.0",
+    "pytest-mock>=3.14.0",
+    "pytest-asyncio>=0.24.0",
+    "httpx>=0.28.0",
+    "ruff>=0.8.0",
+]
