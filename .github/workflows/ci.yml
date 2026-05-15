@@ -33,7 +33,9 @@ jobs:
         run: uv run playwright install chromium --with-deps
 
       - name: Run tests
-        run: uv run python -m pytest tests/ --cov=src/douyin_download --cov-fail-under=80
+        run: |
+          source .venv/bin/activate
+          pytest tests/ --cov=src/douyin_download --cov-fail-under=80
 
       - name: Upload coverage
         uses: codecov/codecov-action@v4
@@ -61,7 +63,9 @@ jobs:
         run: uv sync --dev
 
       - name: Run ruff check
-        run: uv run python -m ruff check src/ tests/
+        run: |
+          source .venv/bin/activate
+          ruff check src/ tests/
 
   build:
     name: Build
