@@ -36,3 +36,22 @@ douyin session <url>                                 # Test URL resolution
 - requests + tqdm progress bar
 - Error handling: VideoNotFoundError, ExtractionTimeoutError
 - API response interception for aweme/detail endpoint
+
+## Development
+
+```bash
+# Setup
+uv sync
+playwright install chromium --with-deps
+
+# Run tests
+uv run pytest tests/ --cov=src/douyin_download
+
+# Lint
+uv run ruff check src/ tests/
+```
+
+## CI/CD
+
+Automated CI via GitHub Actions on every push to main/develop and PRs.
+Releases are published automatically when a `v*` tag is pushed.

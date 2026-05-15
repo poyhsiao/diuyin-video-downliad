@@ -4,13 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-05-15
+
 ### Fixed
 - **Route.fetch "Request context disposed" error**: Add try/except in `_intercept_aweme_detail_api` to gracefully handle fetch errors when request context is disposed
-- **Multi-layer fallback extraction**: Fixed issue where Douyin page structure changes would cause extraction to fail
 
 ### Added
-- **TestInterceptAwemeDetailApi**: TDD tests for API interception error handling
-- **API response interception**: New `_intercept_aweme_detail_api` function to capture aweme/detail API responses
+- **CI/CD**: GitHub Actions workflows for automated testing, linting, and releases
+- **Documentation**: Updated README with development and CI/CD sections
 
 ## [0.1.0] - 2026-05-15
 
