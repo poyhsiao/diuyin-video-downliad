@@ -3,7 +3,7 @@
 import pytest
 from unittest.mock import MagicMock
 
-from douyin_download.extractor import _extract_from_video_tag
+from douyin_download.extractor import _extract_from_video_tag, extract_cdn_url
 
 
 class TestExtractFromVideoTag:
@@ -25,4 +25,28 @@ class TestExtractFromVideoTag:
         mock_page.query_selector.return_value = None
 
         result = _extract_from_video_tag(mock_page)
+        assert result == []
+
+
+class TestExtractFromPaceF:
+    """Tests for _extract_from_pace_f behavior via extract_cdn_url."""
+
+    def test_pace_f_returns_list_not_dict(self) -> None:
+        """Should return empty list when __pace_f returns a list, not dict.
+
+        When __pace_f is a JSON list instead of dict, we skip the values()
+        iteration and fall through to source element extraction. Since no
+        source elements exist in this mock, we get an empty list.
+        """
+        mock_browser = MagicMock()
+        mock_page = MagicMock()
+        mock_browser.new_page.return_value = mock_page
+        mock_response = MagicMock()
+        mock_response.status = 200
+        mock_page.goto.return_value = mock_response
+        mock_page.evaluate.return_value = '[1, 2, 3]'  # JSON list, not dict
+        mock_page.query_selector_all.return_value = []
+
+        result = extract_cdn_url("https://example.com", wait_seconds=1)
+
         assert result == []
