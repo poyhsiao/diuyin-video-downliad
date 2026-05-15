@@ -29,8 +29,10 @@ douyin session <url>                                 # Test URL resolution
 
 ## Features
 
+- Multi-layer fallback DOM extraction (video tag → source tags → pace_f → data attributes → network interception)
 - Playwright headless Chrome extraction
 - Short URL resolution (v.douyin.com)
 - Quality ranking: v5 > v3 > aweme/v1/play/
 - requests + tqdm progress bar
 - Error handling: VideoNotFoundError, ExtractionTimeoutError
+- API response interception for aweme/detail endpoint
