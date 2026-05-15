@@ -12,12 +12,22 @@ class ExtractionTimeoutError(Exception):
 
 
 def _extract_from_video_tag(page) -> list[str]:
-    """Extract URLs from video tag."""
+    """Extract URLs from video tag.
+
+    Args:
+        page: Playwright page object
+
+    Returns:
+        List of URLs found in video src (empty if none)
+    """
     video = page.query_selector("video")
-    if video is None:
+    if not video:
         return []
+
     src = video.get_attribute("src")
-    return [src] if src else []
+    if src and ("mp4" in src or "play" in src):
+        return [src]
+    return []
 
 
 def extract_cdn_url(url: str, wait_seconds: int = 5) -> list[str]:
