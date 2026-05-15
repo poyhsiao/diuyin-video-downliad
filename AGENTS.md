@@ -1,29 +1,4 @@
 <!-- gitnexus:start -->
-# Development Standards
-
-## API Development
-- Use FastAPI with OpenAPI/Redoc documentation at `/docs` and `/redoc`
-- API URL prefix: `/api/v1`
-- All configuration via environment variables with defaults in `.env`
-
-## Docker Deployment
-- Use `docker-compose.yml` for development
-- Use `docker-compose.prod.yml` for production
-- Gunicorn + Uvicorn workers for production
-
-## Package Management
-- Always use `uv` for package and environment management
-
-## Testing Requirements
-- Minimum 80% test coverage
-- TDD approach: write tests first, then implementation
-- BDD integration tests with pytest-bdd
-- API e2e tests with httpx TestClient
-
-## Context7 Usage
-- Use Context7 MCP tools for up-to-date library documentation
-
-<!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
 This project is indexed by GitNexus as **diuyin-video-downliad** (523 symbols, 697 relationships, 11 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.

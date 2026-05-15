@@ -109,7 +109,7 @@ jobs:
         run: |
           docker-compose up -d
           sleep 10
-          curl -f http://localhost:8000/health
+          curl -f http://localhost:80/health
           docker-compose down
 
       - name: Trivy vulnerability scan

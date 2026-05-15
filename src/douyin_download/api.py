@@ -84,10 +84,13 @@ def create_download(
             output_dir=output_path,
             callback_url=request.callback_url,
         )
-        background_tasks.add_task(
-            partial(manager.execute_task, task.task_id),
-            lambda url=task.task_id, out=output_path, q=request.quality or settings.default_quality: download_video(url, out, q),
-        )
+
+        async def run_download():
+            def sync_download(url, out, q):
+                return download_video(url, out, q)
+            await manager.execute_task(task.task_id, sync_download)
+
+        background_tasks.add_task(run_download)
         return DownloadResponse(status="pending", task_id=task.task_id)
 
     # Synchronous mode
