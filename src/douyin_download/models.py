@@ -41,6 +41,10 @@ class VideoQuality:
     RESOLUTION_1080P = "1080p"
 
 
+class VideoNotFoundError(Exception):
+    """Raised when video cannot be found or extracted."""
+
+
 @dataclass
 class DownloadResult:
     """Result of a successful download."""

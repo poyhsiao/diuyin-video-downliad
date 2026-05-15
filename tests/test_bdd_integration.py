@@ -245,34 +245,32 @@ class TestApiFeature:
     """
 
     @pytest.mark.asyncio
-    async def test_root_endpoint_returns_coming_soon(self) -> None:
-        """根路徑回應 - Given: FastAPI 客戶端, When: GET /, Then: 200 + coming_soon"""
+    async def test_health_endpoint_returns_healthy(self) -> None:
+        """健康檢查 - Given: FastAPI 客戶端, When: GET /health, Then: 200 + healthy"""
         from httpx import AsyncClient, ASGITransport
         from douyin_download.api import app
 
         async with AsyncClient(
             transport=ASGITransport(app=app), base_url="http://test"
         ) as client:
-            response = await client.get("/")
+            response = await client.get("/health")
 
         assert response.status_code == 200
-        assert response.json() == {"status": "coming_soon"}
+        data = response.json()
+        assert data["status"] == "healthy"
 
     @pytest.mark.asyncio
-    async def test_download_endpoint_returns_coming_soon(self) -> None:
-        """下載端點預留 - Given: FastAPI 客戶端, When: GET /download, Then: 200"""
+    async def test_api_v1_download_requires_url(self) -> None:
+        """下載端點需要 URL - Given: FastAPI 客戶端, When: POST /api/v1/download without URL, Then: 422"""
         from httpx import AsyncClient, ASGITransport
         from douyin_download.api import app
 
         async with AsyncClient(
             transport=ASGITransport(app=app), base_url="http://test"
         ) as client:
-            response = await client.get(
-                "/download?url=https://www.douyin.com/video/7637075230132849971"
-            )
+            response = await client.post("/api/v1/download", json={})
 
-        assert response.status_code == 200
-        assert "status" in response.json()
+        assert response.status_code == 422  # Validation error
 
 
 # === CLI FEATURE ===

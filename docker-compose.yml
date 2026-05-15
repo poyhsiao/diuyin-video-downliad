@@ -1,0 +1,27 @@
+services:
+  app:
+    build: .
+    container_name: douyin-api
+    volumes:
+      - ./data:/data
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    environment:
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:latest
+    container_name: douyin-nginx
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./data:/data:ro
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - app
+    restart: unless-stopped
