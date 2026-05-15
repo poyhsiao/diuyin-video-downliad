@@ -105,6 +105,9 @@ jobs:
           docker build -t douyin-api:${{ github.sha }} .
           docker build -t douyin-api:latest .
 
+      - name: Create env file for docker compose
+        run: cp .env.example .env
+
       - name: Test with docker compose
         run: |
           docker compose up -d
