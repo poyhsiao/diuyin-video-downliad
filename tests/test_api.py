@@ -30,7 +30,8 @@ def test_download_with_share_text_normalizes_url(client):
     with patch('douyin_download.api.normalize') as mock_normal:
         mock_normal.return_value = "https://www.douyin.com/video/7385822337847635259"
         with patch('douyin_download.api.download_video') as mock_download:
-            test_file = Path("/tmp/test.mp4"); test_file.touch()
+            test_file = Path("/tmp/test.mp4")
+            test_file.touch()
             mock_download.return_value = ("7385822337847635259", test_file)
             response = client.post(
                 "/api/v1/download",

@@ -1,6 +1,6 @@
 """API steps for BDD tests."""
 
-from pytest_bdd import given, when, then, parsers
+from pytest_bdd import given, when, then
 from fastapi.testclient import TestClient
 
 

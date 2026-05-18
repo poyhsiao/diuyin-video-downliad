@@ -1,7 +1,5 @@
 """pytest configuration for BDD features."""
 
-import json
-from typing import Any
 
 import pytest
 

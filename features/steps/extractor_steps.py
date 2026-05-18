@@ -1,7 +1,6 @@
 """Step definitions for extractor feature."""
 
 import json
-import re
 from typing import Any
 
 from pytest_bdd import given, then, when

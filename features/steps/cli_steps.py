@@ -3,6 +3,8 @@
 import subprocess
 from pathlib import Path
 
+from pytest_bdd import given, when, then
+
 
 @given("已安裝 douyin CLI")
 def given_installed_cli():
