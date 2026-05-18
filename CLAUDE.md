@@ -84,3 +84,36 @@ This project is indexed by GitNexus as **diuyin-video-downliad** (523 symbols, 6
 | Index, status, clean, wiki CLI commands | `.claude/skills/gitnexus/gitnexus-cli/SKILL.md` |
 
 <!-- gitnexus:end -->
+
+## Version and Release Management
+
+### Version Number Rules
+- Update `pyproject.toml` version BEFORE creating git tag
+- Use semantic versioning: `major.minor.patch`
+- Version must match in:
+  - `pyproject.toml` → `[project] version`
+  - `CHANGELOG.md` → `[X.Y.Z] — YYYY-MM-DD`
+  - Git tag → `vX.Y.Z`
+
+### Release Checklist
+When completing a release, ensure ALL of these are updated together:
+1. `pyproject.toml` version field
+2. `CHANGELOG.md` with new version section and changes
+3. Git commit with message describing changes
+4. Git tag `vX.Y.Z`
+5. GitHub Release with title and changelog notes
+
+### Release Commands
+```bash
+# Update version and create release
+git add pyproject.toml CHANGELOG.md
+git commit -m "release: vX.Y.Z"
+git tag -a vX.Y.Z -m "vX.Y.Z: <description>"
+git push origin main --tags
+gh release create vX.Y.Y --title "vX.Y.Z - <title>" --notes "<changelog>"
+```
+
+### Never Forget
+- NEVER create git tag without first updating pyproject.toml
+- NEVER skip CHANGELOG.md when releasing
+- ALWAYS push tags with `git push origin vX.Y.Z`
