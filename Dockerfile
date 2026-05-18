@@ -28,7 +28,7 @@ RUN mkdir -p /data/downloads /data/temp
 
 # Set environment
 ENV PYTHONUNBUFFERED=1
-ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+ENV PLAYWRIGHT_BROWSERS_PATH=/root/.cache/ms-playwright
 
 # Expose port (can override with APP_PORT build arg)
 EXPOSE ${APP_PORT:-8000}

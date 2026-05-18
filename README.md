@@ -1,5 +1,72 @@
 # Douyin Video Downloader
 
+A Playwright-based tool for downloading Douyin videos from share links. Supports both CLI and FastAPI interface.
+
+## Features
+
+- **Share Link Support** — Paste raw Douyin share text directly, no need to extract URL manually
+- **Automatic URL Resolution** — Handles short URLs (v.douyin.com) and extracts video IDs
+- **Video Validation** — Verifies videos exist before attempting download
+- **CLI Interface** — Simple `douyin download <url>` command
+- **REST API** — FastAPI server with `/api/v1/download` endpoint
+- **Docker Deployment** — Pre-built container with Chromium browser
+
+## Quick Start
+
+### CLI
+
+```bash
+# Install
+uv sync
+playwright install chromium --with-deps
+
+# Download via share text
+douyin download "7.61 复制打开抖音，看看【一蛙AI的作品】 https://v.douyin.com/NdvdvNIN50I/"
+
+# Download via clean URL
+douyin download "https://www.douyin.com/video/7385822337847635259"
+```
+
+### Docker
+
+```bash
+# Build and run
+docker compose up --build
+
+# Test the API
+curl -X POST http://localhost:8080/api/v1/download \
+  -H "Content-Type: application/json" \
+  -d '{"url": "7.61 复制打开抖音，看看【一蛙AI的作品】 https://v.douyin.com/NdvdvNIN50I/"}'
+```
+
+## API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/v1/download` | Download video from URL |
+| GET | `/api/v1/health` | Health check |
+| GET | `/docs` | API documentation |
+
+## Architecture
+
+```
+cli.py       — Click-based CLI entrypoint
+core.py      — Download orchestration
+extractor.py — Playwright extraction logic
+url_normalizer.py — URL parsing and validation
+models.py    — Pydantic models
+api.py       — FastAPI server
+```
+
+## Development
+
+```bash
+uv sync
+playwright install chromium --with-deps
+pytest                    # Run tests
+pytest --cov=src          # With coverage
+```
+
 Download Douyin (抖音) videos via CLI or REST API.
 
 ## Quick Start
