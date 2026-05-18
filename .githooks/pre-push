@@ -1,0 +1,31 @@
+#!/bin/bash
+# Pre-push hook for automated releases
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+
+cd "$REPO_ROOT"
+
+if [ -f "scripts/release.sh" ]; then
+  echo ""
+  echo "=== Pre-push Release Check ==="
+  
+  # 檢查是否有未發布的 commits
+  LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "none")
+  COMMITS=$(git log $LAST_TAG..HEAD --oneline 2>/dev/null | wc -l | tr -d ' ')
+  
+  if [ "$COMMITS" -gt 0 ] && [ "$COMMITS" != "0" ]; then
+    echo "Found $COMMITS commits since last tag ($LAST_TAG)"
+    
+    echo ""
+    echo "Would you like to run the release script? [y/N]"
+    read -r response
+    if [[ "$response" =~ ^[Yy]$ ]]; then
+      ./scripts/release.sh
+    else
+      echo "Skipping release. Use 'make release' to run manually."
+    fi
+  else
+    echo "No new commits since $LAST_TAG, skipping release check."
+  fi
+fi

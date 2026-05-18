@@ -117,3 +117,35 @@ gh release create vX.Y.Y --title "vX.Y.Z - <title>" --notes "<changelog>"
 - NEVER create git tag without first updating pyproject.toml
 - NEVER skip CHANGELOG.md when releasing
 - ALWAYS push tags with `git push origin vX.Y.Z`
+
+### Automated Release Workflow
+
+This project uses an automated release workflow with pre-push hooks:
+
+**Setup:**
+```bash
+make install-hooks
+```
+
+**Flow:**
+```
+git push → pre-push hook → prompts for version type → auto-updates version → commits → tags → pushes → creates GitHub release
+```
+
+**Commands:**
+- `make install-hooks` - Install git hooks (one-time setup)
+- `make release` - Run release script manually
+- `make test` - Run test suite
+- `make lint` - Run linter
+
+**Release Scripts:**
+- `scripts/release.sh` - Core release automation
+- `scripts/version-bump.sh` - Version number management
+- `scripts/changelog.sh` - CHANGELOG.md generation
+- `.githooks/pre-push` - Git hook template
+
+**Version Selection:**
+When running release, you'll be prompted to choose:
+- `[p]` patch (default for bug fixes)
+- `[m]` minor (for new features)
+- `[M]` major (for breaking changes)
