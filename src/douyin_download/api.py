@@ -333,10 +333,18 @@ def create_download(
     # Normalize URL (handles share text, short URLs, validation)
     try:
         normalized_url = normalize(url)
-    except InvalidURLError:
-        raise HTTPException(status_code=400, detail="URL_RESOLVE_FAILED")
-    except VideoUnavailableError:
-        raise HTTPException(status_code=400, detail="VIDEO_NOT_AVAILABLE")
+    except InvalidURLError as e:
+        raise HTTPException(status_code=400, detail={
+            "error": "URL解析失敗",
+            "code": "URL_RESOLVE_FAILED",
+            "detail": str(e)
+        })
+    except VideoUnavailableError as e:
+        raise HTTPException(status_code=400, detail={
+            "error": "影片不存在",
+            "code": "VIDEO_NOT_AVAILABLE",
+            "detail": str(e)
+        })
 
     if callback_url:
         task = manager.create_task(

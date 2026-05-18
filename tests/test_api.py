@@ -48,7 +48,8 @@ def test_download_invalid_url_returns_400(client):
             data={"url": "這只是普通文字"}
         )
         assert response.status_code == 400
-        assert "URL_RESOLVE_FAILED" in response.json().get("detail", "")
+        detail = response.json().get("detail", {})
+        assert detail.get("code") == "URL_RESOLVE_FAILED"
 
 
 def test_download_video_not_available_returns_400(client):
@@ -60,7 +61,8 @@ def test_download_video_not_available_returns_400(client):
             data={"url": "https://v.douyin.com/invalid"}
         )
         assert response.status_code == 400
-        assert "VIDEO_NOT_AVAILABLE" in response.json().get("detail", "")
+        detail = response.json().get("detail", {})
+        assert detail.get("code") == "VIDEO_NOT_AVAILABLE"
 
 
 def test_download_sync_mode(client):
