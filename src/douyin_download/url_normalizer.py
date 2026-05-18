@@ -1,5 +1,6 @@
 import re
 import httpx
+from httpx import TimeoutException, HTTPError
 
 
 class InvalidURLError(Exception):
@@ -23,9 +24,6 @@ def extract_url_from_text(text: str) -> str | None:
     return url.rstrip('/')
 
 
-from httpx import TimeoutException, HTTPError
-
-
 def resolve_short_url(url: str, timeout: int = 10) -> str:
     """Follow HTTP redirects to resolve short URL to final URL.
 
@@ -43,9 +41,9 @@ def resolve_short_url(url: str, timeout: int = 10) -> str:
         with httpx.Client(follow_redirects=True, timeout=timeout) as client:
             response = client.get(url)
             if not response.is_success:
-                raise InvalidURLError(f"HTTP {response.status_code}")
+                raise InvalidURLError(f"HTTP {response.status_code} for URL: {url}")
             return str(response.url)
     except TimeoutException:
-        raise InvalidURLError("Request timed out")
+        raise InvalidURLError(f"Request timed out for URL: {url}")
     except HTTPError:
-        raise InvalidURLError("Connection error")
+        raise InvalidURLError(f"Connection error for URL: {url}")
