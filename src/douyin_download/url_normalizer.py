@@ -47,3 +47,23 @@ def resolve_short_url(url: str, timeout: int = 10) -> str:
         raise InvalidURLError(f"Request timed out for URL: {url}")
     except HTTPError:
         raise InvalidURLError(f"Connection error for URL: {url}")
+
+
+def extract_video_id(url: str) -> str | None:
+    """Extract video ID from Douyin URL.
+
+    Args:
+        url: Douyin URL (various formats)
+
+    Returns:
+        Video ID or None if not found
+    """
+    patterns = [
+        r'/video/(\d+)',
+        r'/aweme/(\d+)',
+        r'video_id=(\d+)',
+    ]
+    for pattern in patterns:
+        if match := re.search(pattern, url):
+            return match.group(1)
+    return None
