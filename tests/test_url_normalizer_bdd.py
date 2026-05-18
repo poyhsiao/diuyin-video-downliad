@@ -113,7 +113,7 @@ class TestValidateVideoId:
         with patch("httpx.Client") as mock_client:
             mock_response = Mock()
             mock_response.status_code = 200
-            mock_client.return_value.__enter__.return_value.head.return_value = mock_response
+            mock_client.return_value.__enter__.return_value.get.return_value = mock_response
 
             result = validate_video_id("7385822337847635259")
             assert result is True
@@ -123,7 +123,7 @@ class TestValidateVideoId:
         with patch("httpx.Client") as mock_client:
             mock_response = Mock()
             mock_response.status_code = 404
-            mock_client.return_value.__enter__.return_value.head.return_value = mock_response
+            mock_client.return_value.__enter__.return_value.get.return_value = mock_response
 
             with pytest.raises(VideoUnavailableError, match="not found"):
                 validate_video_id("0000000000000000000")
@@ -133,7 +133,7 @@ class TestValidateVideoId:
         with patch("httpx.Client") as mock_client:
             mock_response = Mock()
             mock_response.status_code = 403
-            mock_client.return_value.__enter__.return_value.head.return_value = mock_response
+            mock_client.return_value.__enter__.return_value.get.return_value = mock_response
 
             with pytest.raises(VideoUnavailableError, match="access denied"):
                 validate_video_id("7385822337847635259")

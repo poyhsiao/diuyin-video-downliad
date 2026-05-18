@@ -89,9 +89,14 @@ def validate_video_id(video_id: str, timeout: int = 10) -> bool:
         InvalidURLError: If request fails due to network error
     """
     check_url = f"https://www.douyin.com/video/{video_id}"
+    browser_headers = {
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "zh-TW,zh;q=0.9,en;q=0.8",
+    }
     try:
-        with httpx.Client(timeout=timeout) as client:
-            response = client.head(check_url)
+        with httpx.Client(timeout=timeout, headers=browser_headers) as client:
+            response = client.get(check_url)
             if response.status_code == 404:
                 raise VideoUnavailableError(f"Video {video_id} not found")
             if response.status_code == 403:
@@ -99,6 +104,9 @@ def validate_video_id(video_id: str, timeout: int = 10) -> bool:
             if response.status_code >= 500:
                 # Server error - video might be accessible later
                 return False
+            # For successful responses (200), trust that the page will render via JavaScript
+            # Douyin uses client-side rendering so initial HTML may be empty
+            # Actual video extraction will be handled by Playwright during download
             return True
     except (TimeoutException, HTTPError) as e:
         raise InvalidURLError(f"Failed to validate video {video_id}: {e}")
