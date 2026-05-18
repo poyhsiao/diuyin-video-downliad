@@ -2,7 +2,7 @@
 # 根據類型升級版本號
 
 TYPE=$1
-CURRENT=$(grep 'version = ' pyproject.toml | grep -oP '\d+\.\d+\.\d+')
+CURRENT=$(grep 'version = ' pyproject.toml | sed 's/version = "//g;s/"//' | tr -d ' ')
 
 IFS='.' read -ra VER <<< "$CURRENT"
 MAJOR=${VER[0]}
@@ -19,7 +19,6 @@ NEW_VERSION="$MAJOR.$MINOR.$PATCH"
 echo $NEW_VERSION > .version
 
 # 更新 pyproject.toml
-sed -i.bak "s/version = \".*\"/version = \"$NEW_VERSION\"/" pyproject.toml
-rm -f pyproject.toml.bak
+sed -i '' "s/version = \".*\"/version = \"$NEW_VERSION\"/" pyproject.toml
 
 echo "Version bumped: $CURRENT -> $NEW_VERSION"
