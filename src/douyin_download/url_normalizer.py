@@ -82,13 +82,23 @@ def validate_video_id(video_id: str, timeout: int = 10) -> bool:
 
     Returns:
         True if video exists and is accessible
+        False if server error (video might be accessible later)
 
     Raises:
-        VideoUnavailableError: If video is not available
+        VideoUnavailableError: If video is not available or access denied
+        InvalidURLError: If request fails due to network error
     """
     check_url = f"https://www.douyin.com/video/{video_id}"
-    with httpx.Client(timeout=timeout) as client:
-        response = client.head(check_url)
-        if response.status_code in (404, 403):
-            raise VideoUnavailableError(f"Video {video_id} not available")
-        return True
+    try:
+        with httpx.Client(timeout=timeout) as client:
+            response = client.head(check_url)
+            if response.status_code == 404:
+                raise VideoUnavailableError(f"Video {video_id} not found")
+            if response.status_code == 403:
+                raise VideoUnavailableError(f"Video {video_id} access denied")
+            if response.status_code >= 500:
+                # Server error - video might be accessible later
+                return False
+            return True
+    except (TimeoutException, HTTPError) as e:
+        raise InvalidURLError(f"Failed to validate video {video_id}: {e}")
