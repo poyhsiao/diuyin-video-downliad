@@ -1,6 +1,28 @@
 import pytest
 from unittest.mock import patch, Mock
-from douyin_download.url_normalizer import extract_video_id, validate_video_id, VideoUnavailableError
+from douyin_download.url_normalizer import extract_video_id, validate_video_id, VideoUnavailableError, normalize, InvalidURLError
+
+
+def test_normalize_clean_url():
+    """乾淨 URL 直接正規化"""
+    with patch('douyin_download.url_normalizer.validate_video_id', return_value=True):
+        result = normalize("https://www.douyin.com/video/7385822337847635259")
+        assert result == "https://www.douyin.com/video/7385822337847635259"
+
+
+def test_normalize_share_text_extracts_url():
+    """分享文字自動取出 URL"""
+    with patch('douyin_download.url_normalizer.resolve_short_url') as mock_resolve, \
+         patch('douyin_download.url_normalizer.validate_video_id', return_value=True):
+        mock_resolve.return_value = "https://www.douyin.com/video/7385822337847635259"
+        result = normalize("7.61 复制打开抖音... https://v.douyin.com/abc123/ ...")
+        assert "7385822337847635259" in result
+
+
+def test_normalize_no_url_raises_error():
+    """無 URL 拋出 InvalidURLError"""
+    with pytest.raises(InvalidURLError, match="No URL found"):
+        normalize("這只是普通文字")
 
 
 def test_extract_video_id_from_standard_url():

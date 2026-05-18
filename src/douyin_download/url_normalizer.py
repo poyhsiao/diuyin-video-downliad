@@ -102,3 +102,37 @@ def validate_video_id(video_id: str, timeout: int = 10) -> bool:
             return True
     except (TimeoutException, HTTPError) as e:
         raise InvalidURLError(f"Failed to validate video {video_id}: {e}")
+
+
+def normalize(text: str, timeout: int = 10) -> str:
+    """Full pipeline: extract → resolve → validate → normalize.
+
+    Args:
+        text: Raw input (share text or clean URL)
+        timeout: Request timeout in seconds
+
+    Returns:
+        Normalized video URL
+
+    Raises:
+        InvalidURLError: If URL cannot be parsed
+        VideoUnavailableError: If video does not exist
+    """
+    url = extract_url_from_text(text)
+    if not url:
+        raise InvalidURLError("No URL found in input")
+
+    # Resolve short URL if needed
+    if "v.douyin.com" in url:
+        url = resolve_short_url(url, timeout)
+
+    # Extract video ID
+    video_id = extract_video_id(url)
+    if not video_id:
+        raise InvalidURLError(f"Cannot extract video ID from {url}")
+
+    # Validate video exists
+    validate_video_id(video_id, timeout)
+
+    # Return normalized URL
+    return f"https://www.douyin.com/video/{video_id}"
