@@ -7,6 +7,10 @@ class InvalidURLError(Exception):
     """Raised when URL cannot be parsed or validated."""
 
 
+class VideoUnavailableError(Exception):
+    """Raised when video is not available or accessible."""
+
+
 def extract_url_from_text(text: str) -> str | None:
     """Extract first URL from messy share text.
 
@@ -67,3 +71,24 @@ def extract_video_id(url: str) -> str | None:
         if match := re.search(pattern, url):
             return match.group(1)
     return None
+
+
+def validate_video_id(video_id: str, timeout: int = 10) -> bool:
+    """Validate that video ID exists and is accessible.
+
+    Args:
+        video_id: Video ID to validate
+        timeout: Request timeout in seconds
+
+    Returns:
+        True if video exists and is accessible
+
+    Raises:
+        VideoUnavailableError: If video is not available
+    """
+    check_url = f"https://www.douyin.com/video/{video_id}"
+    with httpx.Client(timeout=timeout) as client:
+        response = client.head(check_url)
+        if response.status_code in (404, 403):
+            raise VideoUnavailableError(f"Video {video_id} not available")
+        return True
