@@ -124,4 +124,4 @@ jobs:
           format: 'table'
           exit-code: '1'
           severity: 'CRITICAL,HIGH'
-        continue-on-error: true
+        continue-on-error: true 
