@@ -23,6 +23,9 @@ def extract_url_from_text(text: str) -> str | None:
     return url.rstrip('/')
 
 
+from httpx import TimeoutException, HTTPError
+
+
 def resolve_short_url(url: str, timeout: int = 10) -> str:
     """Follow HTTP redirects to resolve short URL to final URL.
 
@@ -36,8 +39,13 @@ def resolve_short_url(url: str, timeout: int = 10) -> str:
     Raises:
         InvalidURLError: If URL cannot be resolved
     """
-    with httpx.Client(follow_redirects=True, timeout=timeout) as client:
-        response = client.get(url)
-        if not response.is_success:
-            raise InvalidURLError(f"HTTP {response.status_code}")
-        return str(response.url)
+    try:
+        with httpx.Client(follow_redirects=True, timeout=timeout) as client:
+            response = client.get(url)
+            if not response.is_success:
+                raise InvalidURLError(f"HTTP {response.status_code}")
+            return str(response.url)
+    except TimeoutException:
+        raise InvalidURLError("Request timed out")
+    except HTTPError:
+        raise InvalidURLError("Connection error")

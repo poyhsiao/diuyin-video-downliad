@@ -49,3 +49,11 @@ def test_resolve_short_url_http_error():
         mock_client.return_value.__enter__.return_value.get.return_value = mock_response
         with pytest.raises(InvalidURLError):
             resolve_short_url("https://v.douyin.com/notfound")
+
+
+def test_resolve_short_url_timeout():
+    """超時拋出 InvalidURLError"""
+    with patch('httpx.Client') as mock_client:
+        mock_client.return_value.__enter__.return_value.get.side_effect = TimeoutException("Request timed out")
+        with pytest.raises(InvalidURLError, match="Request timed out"):
+            resolve_short_url("https://v.douyin.com/slow")
